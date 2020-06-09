@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
                     intent = new Intent(MainActivity.this, Sy4_1.class);
                     break;
 
+
                 case R.id.btn_SY5_1:
                     intent = new Intent(MainActivity.this, Sy5_1.class);
                     break;
