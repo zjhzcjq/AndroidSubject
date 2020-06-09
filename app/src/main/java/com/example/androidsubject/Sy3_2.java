@@ -1,22 +1,28 @@
 package com.example.androidsubject;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.TextView;
+import android.view.View;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.androidsubject.databinding.ActivitySy32Binding;
 
 public class Sy3_2 extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sy3_2);
+        ActivitySy32Binding binding = ActivitySy32Binding.inflate(getLayoutInflater());
+        View view = binding.getRoot();
+        setContentView(view);
 
-        TextView text_3_2 = findViewById(R.id.text_3_2);
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
-        String name = bundle.getString("name");
-        text_3_2.setText(name);
+        String name = null;
+        if (bundle != null) {
+            name = bundle.getString("name");
+        }
+        binding.text32.setText(name);
     }
 }

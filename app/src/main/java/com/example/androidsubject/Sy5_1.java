@@ -1,29 +1,27 @@
 package com.example.androidsubject;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.androidsubject.databinding.ActivitySy51Binding;
 
 public class Sy5_1 extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sy5_1);
+        final ActivitySy51Binding binding = ActivitySy51Binding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        final EditText edit_name = findViewById(R.id.edit_5_1_name);
-        final EditText edit_like = findViewById(R.id.edit_5_1_like);
-        Button btn_5_1 = findViewById(R.id.btn_5_1);
-        btn_5_1.setOnClickListener(new View.OnClickListener() {
+        binding.btn51.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String name = edit_name.getText().toString();
-                String like = edit_like.getText().toString();
+                String name = binding.edit51Name.getText().toString();
+                String like = binding.edit51Like.getText().toString();
                 ContentValues values = new ContentValues();
                 values.put("name", name);
                 values.put("hobby", like);

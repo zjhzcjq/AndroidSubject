@@ -18,10 +18,11 @@ public class Sy4_2 extends Service {
     }
 
     @Override
-    public void onStart(Intent intent, int startId) {
-        super.onStart(intent, startId);
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        super.onStartCommand(intent, flags, startId);
         player = MediaPlayer.create(this, R.raw.text);
         player.start();
+        return flags;
     }
 
     @Override
