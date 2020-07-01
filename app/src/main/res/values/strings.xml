@@ -5,4 +5,6 @@
     <string name="button_2_1">I am a button!</string>
     <string name="button_2_3">Please Click Me</string>
     <string name="hello">hello</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="change_camera">Change Camera</string>
 </resources>

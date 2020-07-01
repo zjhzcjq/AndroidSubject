@@ -2,6 +2,7 @@ package com.example.androidsubject;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.ImageFormat;
@@ -19,16 +20,22 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
-import android.widget.FrameLayout;
+import android.view.WindowManager;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -41,6 +48,7 @@ import java.util.List;
 
 public class Sy6_2 extends AppCompatActivity {
 
+
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
     static {
@@ -51,9 +59,10 @@ public class Sy6_2 extends AppCompatActivity {
     }
 
     //定义界面上的根布局管理器
-    private FrameLayout rootLayout;
+    private LinearLayout rootLayout;
     //定义自定义的AutoFitTextureView组件，用于预览摄像头照片
     private AutoFitTextureView textureView;
+    private AutoFitTextureView textureView_new;
     //摄像头ID（通常0代表后置摄像头，1代表前置摄像头）
     private String mCameraID = "0";
     //定义代表摄像头的成员变量
@@ -66,6 +75,7 @@ public class Sy6_2 extends AppCompatActivity {
     //定义CameraCaptureSession成员变量
     private CameraCaptureSession captureSession;
     private ImageReader imageReader;
+
     private final TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
@@ -118,13 +128,24 @@ public class Sy6_2 extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //隐藏标题栏
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar!=null){
+            actionBar.hide();
+        }
+
+        //隐藏状态栏
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         setContentView(R.layout.activity_sy6_2);
         rootLayout = findViewById(R.id.root);
         requestPermissions(new String[]{Manifest.permission.CAMERA}, 0x123);
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         if (requestCode == 0x123 && grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
             //创建预览摄像头照片的TextureView组件
             textureView = new AutoFitTextureView(Sy6_2.this, null);
@@ -132,6 +153,17 @@ public class Sy6_2 extends AppCompatActivity {
             textureView.setSurfaceTextureListener(mSurfaceTextureListener);
             rootLayout.addView(textureView);
             findViewById(R.id.btn_take_photo).setOnClickListener(view -> captureStillPicture());
+            findViewById(R.id.btn_change_camera).setOnClickListener(view -> {
+                if (mCameraID.equals("1")){
+                    mCameraID = "0";
+                }else{
+                    mCameraID = "1";
+                }
+                cameraDevice.close();
+                textureView_new = new AutoFitTextureView(Sy6_2.this, null);
+                textureView_new.setSurfaceTextureListener(mSurfaceTextureListener);
+                rootLayout.addView(textureView_new);
+            });
         }
     }
 
@@ -141,17 +173,24 @@ public class Sy6_2 extends AppCompatActivity {
                 return;
             }
             //创建作为拍照的CaptureRequest.Builder
-            CaptureRequest.Builder captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
+            CaptureRequest.Builder captureRequestBuilder = cameraDevice.
+                    createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             //将imageReader的surface作为CaptureRequest.Builder的目标
             captureRequestBuilder.addTarget(imageReader.getSurface());
             //设置自动对焦模式
-            captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+            captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                    CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             //设置自动曝光模式
-            captureRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+            captureRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
+                    CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
             //获取设备方向
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             //根据设备方向计算设置照片的方向
-            captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
+            if (mCameraID.equals("1")){
+                captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, 270);
+            }else{
+                captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
+            }
             //停止连续取景
             captureSession.stopRepeating();
             //捕获静态图像
@@ -161,9 +200,11 @@ public class Sy6_2 extends AppCompatActivity {
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
                     try{
                         //重设自动对焦模式
-                        previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+                        previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
+                                CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
                         //设置自动曝光模式
-                        previewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+                        previewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
+                                CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
                         //打开连续取景模式
                         captureSession.setRepeatingRequest(previewRequest, null, null);
                     }catch(CameraAccessException e){
@@ -227,7 +268,8 @@ public class Sy6_2 extends AppCompatActivity {
             //将textureView的surface作为CaptureRequest.Builder的目标
             previewRequestBuilder.addTarget(new Surface(texture));
             //创建CameraCaptureSession,该对象负责管理处理预览请求和拍照请求
-            cameraDevice.createCaptureSession(Arrays.asList(surface, imageReader.getSurface()), new CameraCaptureSession.StateCallback() {
+            cameraDevice.createCaptureSession(Arrays.asList(surface, imageReader.getSurface()),
+                    new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession session) {
                     //如果摄像头为null，直接结束方法
@@ -237,14 +279,17 @@ public class Sy6_2 extends AppCompatActivity {
                     //当摄像头已经准备好时，开始显示预览
                     captureSession = session;
                     //设置自动对焦模式
-                    previewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                    previewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                            CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                     //设置自动曝光模式
-                    previewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+                    previewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
+                            CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
                     //开始显示相机预览
                     previewRequest = previewRequestBuilder.build();
                     try {
                         //设置预览时连续捕获图像数据
-                        captureSession.setRepeatingRequest(previewRequest, null, null);
+                        captureSession.setRepeatingRequest(previewRequest,
+                                null, null);
                     }catch (CameraAccessException e){
                         e.printStackTrace();
                     }
@@ -269,9 +314,11 @@ public class Sy6_2 extends AppCompatActivity {
             //获取摄像头支持的配置属性
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             //获取摄像头支持的最大尺寸
-            Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)), new CompareSizesByArea());
+            Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
+                    new CompareSizesByArea());
             //创建一个ImageReader对象， 用于获取摄像头的图像数据
-            imageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.JPEG, 2);
+            imageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
+                    ImageFormat.JPEG, 2);
             imageReader.setOnImageAvailableListener(reader ->{
                 //当照片数据可用于激发该方法
                 //获取捕获的照片数据
@@ -285,6 +332,19 @@ public class Sy6_2 extends AppCompatActivity {
                     FileOutputStream output = new FileOutputStream(file);
                     output.write(bytes);
                     Toast.makeText(Sy6_2.this,"保存："+file,Toast.LENGTH_SHORT).show();
+                    // 动态权限
+                    if (ContextCompat.checkSelfPermission(Sy6_2.this,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+                        ActivityCompat.requestPermissions(Sy6_2.this,
+                                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                    }else {
+                        // 把文件插入到系统图库
+                        MediaStore.Images.Media.insertImage(getContentResolver(),
+                                file.getAbsolutePath(), "title", "description");
+                        // 广播通知相册有新图片
+                        sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
+                                Uri.fromFile((new File(file.getPath())))));
+                    }
                 }catch (Exception e){
                     e.printStackTrace();
                 }
