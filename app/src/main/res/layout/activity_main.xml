@@ -46,10 +46,24 @@
             android:textAllCaps="false"/>
 
         <Button
-            android:id="@+id/btn_SY5_1"
+        android:id="@+id/btn_SY5_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SY5_1"
+        android:textAllCaps="false"/>
+
+        <Button
+            android:id="@+id/btn_SY6_1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="SY5_1"
+            android:text="SY6_1"
+            android:textAllCaps="false"/>
+
+        <Button
+            android:id="@+id/btn_SY6_2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="SY6_2"
             android:textAllCaps="false"/>
 
     </LinearLayout>

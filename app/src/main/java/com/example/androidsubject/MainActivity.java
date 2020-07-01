@@ -29,6 +29,8 @@ public class MainActivity extends AppCompatActivity {
         binding.btnSY31.setOnClickListener(onClick);
         binding.btnSY41.setOnClickListener(onClick);
         binding.btnSY51.setOnClickListener(onClick);
+        binding.btnSY61.setOnClickListener(onClick);
+        binding.btnSY62.setOnClickListener(onClick);
     }
 
     private class OnClick implements View.OnClickListener{
@@ -58,6 +60,14 @@ public class MainActivity extends AppCompatActivity {
 
                 case R.id.btn_SY5_1:
                     intent = new Intent(MainActivity.this, Sy5_1.class);
+                    break;
+
+                case R.id.btn_SY6_1:
+                    intent = new Intent(MainActivity.this, Sy6_1.class);
+                    break;
+
+                case R.id.btn_SY6_2:
+                    intent = new Intent(MainActivity.this, Sy6_2.class);
                     break;
             }
             startActivity(intent);
